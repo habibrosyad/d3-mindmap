@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+    <style type="text/css">
+      .node circle {
+        cursor: pointer;
+        fill: #fff;
+        stroke: steelblue;
+        stroke-width: 1.5px;
+      }
+
+      .node text {
+        font-family: sans-serif;
+        font-size: 11px;
+      }
+
+      path.link {
+        fill: none;
+        stroke: #ccc;
+        stroke-width: 1.5px;
+      }
+      
+      .node.selected circle {
+        fill: green;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="body">
+      <div id="toolbar">
+        <button onclick="pushTopToBottom(); return false;">Push top to bottom on right</button>
+        <button onclick="addNodes(); return false;">Add Nodes</button>
+        <button onclick="swapLeftRight(); return false;">Swap left and right</button>
+        <button onclick="moveNode('left', 'right'); return false;">Move left to right</button>
+        <button onclick="moveNode('right', 'left'); return false;">Move right to left</button>
+      </div>
+      <svg id="chart"></svg>
+    </div>
+    <script type="text/javascript" src="mindmap.js"></script>
+    <script type="text/javascript">
+      var getDims = function(){
+        var w=window,d=document,e=d.documentElement,g=d.getElementsByTagName('body')[0],x=w.innerWidth||e.clientWidth||g.clientWidth,y=w.innerHeight||e.clientHeight||g.clientHeight;
+        return {width: x, height: y};
+      };
+      var dims = getDims();
+      var chart = MindMap()
+        .width(dims.width)
+        .height(dims.height-10)
+        .text(function(d){
+          return d.name || d.text;
+        })
+        .click(function(d){
+          console.log(d);
+          
+          // Find previously selected, unselect
+          d3.select(".selected").classed("selected", false);
+          
+          // Select current item
+          d3.select(this).classed("selected", true);
+          
+          // Collapsible
+          if (d.children) {
+            d._children = d.children;
+            d.children = null;
+          } else {
+            d.children = d._children;
+            d._children = null;
+          }
+
+          if (d.left || d.right) {
+            if (d.left.length > 0) {
+              d._left = d.left;
+              d.left = [];
+            } else {
+              d.left = d._left;
+              d._left = [];
+            }
+
+            if (d.right.length > 0) {
+              d._right = d.right;
+              d.right = [];
+            } else {
+              d.right = d._right;
+              d._right = [];
+            }
+          }
+
+          chart.selectedNode = d;
+          chart.update();
+        });
+      
+      var loadJSON = function(fileName){
+        d3.json("/data/"+fileName, function(json) {
+          var i=0, l=json.children.length;
+          update(json);
+        });
+      };
+      
+      var loadFreeMind = function(fileName){
+        MindMap.loadFreeMind('data/'+fileName, function(err, data){
+          update(data);
+        });
+      };
+      
+      var update = function(data){
+        window.data = data;
+        d3.select('#chart')
+          .datum(data)
+          .call(chart)
+          ;
+      };
+        
+      var pushTopToBottom = function(){
+        if(data.right[0]){
+          if(data.right[0].children){
+            data.right[0].children.push(data.right[0].children.shift());
+          }else{
+            data.right.push(data.right.shift());
+          }
+        }
+        chart.update();
+      };
+      
+      var addNodes = function(){
+        if(data.right){
+          if(data.right[0]){
+            (data.right[0].children = data.right[0].children || []).push({name: 'test', children: [{name: 'Foo'}, {name: 'Bar'}, {name: 'None'}]});
+          }else{
+            data.right.push({name: 'test', children: [{name: 'Foo'}, {name: 'Bar'}, {name: 'None'}]});
+          }
+        }else{
+          data.right = [{name: 'test', children: [{name: 'Foo'}, {name: 'Bar'}, {name: 'None'}]}];
+        }
+        chart.update();
+      };
+      
+      var swapLeftRight = function(){
+        var tmp = data.left;
+        data.left = data.right;
+        data.right = tmp;
+        chart.update();
+      };
+      
+      var moveNode = function(from, to){
+        var n = data[from].shift();
+        if(n){
+          data[to].push(n);
+        }
+        chart.update();
+      };
+      
+      update({
+        "name": "TARTIL",
+        "children": [
+          {
+            "name": "Tajwid Huruf",
+            "children": [
+              {
+                "name": "Makhraj",
+                "children": [
+                  {"name": "Rongga Mulut"},
+                  {"name": "Tenggorokan"},
+                  {"name": "Lidah"},
+                  {"name": "Bibir"},
+                  {"name": "Rongga Hidung"}
+                ]
+              },
+              {
+                "name": "Sifat",
+                "children": [
+                  {
+                    "name": "Asli",
+                    "children": [
+                      {"name": "Sifat yang Memiliki Lawan"},
+                      {"name": "Sifat yang Tidak Memiliki Lawan"}
+                    ]
+                  },
+                  {
+                    "name": "Turunan",
+                    "children": [
+                      {"name": "Nun Sukun dan Tanwin"},
+                      {"name": "Mim Sukun"},
+                      {"name": "Mad"},
+                      {"name": "Tafkhim dan Tarqiq"},
+                      {
+                        "name": "Pertemuan Dua Huruf",
+                        "children": [
+                          {"name": "Mutamatsilan"},
+                          {"name": "Mutajanisan"},
+                          {
+                            "name": "Mutaqariban",
+                            "children": [
+                              {"name": "Hukum Alif Lam"}
+                            ]
+                          },
+                          {"name": "Mutaba'idan"}
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Ma'rifat Wuquf",
+            "children": [
+              {
+                "name": "Waqf",
+                "children": [
+                  {
+                    "name": "Tempat",
+                    "children": [
+                      {
+                        "name": "Ikhtiyari",
+                        "children": [
+                          {"name": "Tam"},
+                          {
+                            "name": "Kafi",
+                            "children": [
+                              {"name": "Tanda Waqf"}
+                            ]
+                          },
+                          {"name": "Hasan"},
+                          {"name": "Qabih"}
+                        ]
+                      },
+                      {
+                        "name": "Ikhtibari",
+                        "children": [
+                          {"name": "Maqthu` wa Maushul"},
+                          {"name": "Ha' Ta'nits"},
+                          {"name": "Itsbat wa Hadzf"},
+                          {
+                            "name": "Rasm",
+                            "children": [
+                              {"name": "Hamzah"},
+                              {"name": "Nun Taukid Khafif"}
+                            ]
+                          }
+                        ]
+                      },
+                      {"name": "Intizhari"},
+                      {"name": "Idhthirari"}
+                    ]
+                  },
+                  {
+                    "name": "Cara",
+                    "children": [
+                      {"name": "Sukun"},
+                      {"name": "Raum"},
+                      {"name": "Isymam"}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Ibtida'",
+                "children": [
+                  {
+                    "name": "Tempat",
+                    "children": [
+                      {"name": "Haqiqi"},
+                      {
+                        "name": "Idhafi",
+                        "children": [
+                          {
+                            "name": "Ikhtiyari",
+                            "children": [
+                              {"name": "Tam"},
+                              {"name": "kafi"},
+                              {"name": "Hasan"},
+                              {"name": "Qabih"},
+                              {"name": "Harakat `Aridh"}
+                            ]
+                          },
+                          {
+                            "name": "Ikhtibari",
+                            "children": [
+                              {"name": "Harakat `Aridh"}
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Cara",
+                    "children": [
+                      {"name": "Isti`adzah dan Basmalah"},
+                      {"name": "Hamzah Washal"}
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+    </script>
+  </body>
+</html>
