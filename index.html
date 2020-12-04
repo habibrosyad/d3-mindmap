@@ -9,8 +9,16 @@
       .node circle {
         cursor: pointer;
         fill: #fff;
-        stroke: steelblue;
+        stroke: #007bff;
         stroke-width: 1.5px;
+      }
+
+      .node a {
+        text-decoration: underline;
+      }
+
+      .node a text {
+        fill: #007bff;
       }
 
       .node text {
@@ -25,7 +33,7 @@
       }
       
       .node.selected circle {
-        fill: green;
+        fill: #007bff;
       }
     </style>
   </head>
@@ -42,20 +50,23 @@
     </div>
     <script type="text/javascript" src="mindmap.js"></script>
     <script type="text/javascript">
-      var getDims = function(){
-        var w=window,d=document,e=d.documentElement,g=d.getElementsByTagName('body')[0],x=w.innerWidth||e.clientWidth||g.clientWidth,y=w.innerHeight||e.clientHeight||g.clientHeight;
+      const getDims = function(){
+        const w=window,
+            d=document,
+            e=d.documentElement,
+            g=d.getElementsByTagName('body')[0],
+            x=w.innerWidth||e.clientWidth||g.clientWidth,
+            y=w.innerHeight||e.clientHeight||g.clientHeight;
         return {width: x, height: y};
       };
-      var dims = getDims();
-      var chart = MindMap()
+      const dims = getDims();
+      const chart = MindMap()
         .width(dims.width)
         .height(dims.height-10)
         .text(function(d){
           return d.name || d.text;
         })
         .click(function(d){
-          console.log(d);
-
           // Find previously selected, unselect
           d3.select(".selected").classed("selected", false);
           
@@ -93,20 +104,20 @@
           chart.update();
         });
       
-      var loadJSON = function(fileName){
+      const loadJSON = function(fileName){
         d3.json("/data/"+fileName, function(json) {
           var i=0, l=json.children.length;
           update(json);
         });
       };
       
-      var loadFreeMind = function(fileName){
+      const loadFreeMind = function(fileName){
         MindMap.loadFreeMind('data/'+fileName, function(err, data){
           update(data);
         });
       };
       
-      var update = function(data){
+      const update = function(data){
         window.data = data;
         d3.select('#chart')
           .datum(data)
@@ -114,7 +125,7 @@
           ;
       };
         
-      var pushTopToBottom = function(){
+      const pushTopToBottom = function(){
         if(data.right[0]){
           if(data.right[0].children){
             data.right[0].children.push(data.right[0].children.shift());
@@ -125,7 +136,7 @@
         chart.update();
       };
       
-      var addNodes = function(){
+      const addNodes = function(){
         if(data.right){
           if(data.right[0]){
             (data.right[0].children = data.right[0].children || []).push({name: 'test', children: [{name: 'Foo'}, {name: 'Bar'}, {name: 'None'}]});
@@ -138,15 +149,15 @@
         chart.update();
       };
       
-      var swapLeftRight = function(){
-        var tmp = data.left;
+      const swapLeftRight = function(){
+        const tmp = data.left;
         data.left = data.right;
         data.right = tmp;
         chart.update();
       };
       
-      var moveNode = function(from, to){
-        var n = data[from].shift();
+      const moveNode = function(from, to){
+        const n = data[from].shift();
         if(n){
           data[to].push(n);
         }
@@ -158,6 +169,7 @@
         "children": [
           {
             "name": "Tajwid Huruf",
+            "url": "https://google.com",
             "children": [
               {
                 "name": "Makhraj",
@@ -176,7 +188,10 @@
                     "name": "Asli",
                     "children": [
                       {"name": "Sifat yang Memiliki Lawan"},
-                      {"name": "Sifat yang Tidak Memiliki Lawan"}
+                      {
+                        "name": "Sifat yang Tidak Memiliki Lawan",
+                        "url": "https://google.com"
+                      }
                     ]
                   },
                   {
